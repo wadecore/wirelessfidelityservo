@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Servo Control Panel</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 20px;
+      transition: background-color 0.3s, color 0.3s;
+    }
+    body.dark-mode {
+      background-color: #333;
+      color: #fff;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .dark-mode h1 {
+      color: #fff;
+    }
+    .grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+    .cell {
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 20px;
+      width: 250px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s, border-color 0.3s;
+    }
+    .dark-mode .cell {
+      background-color: #444;
+      border-color: #555;
+    }
+    .cell h3 {
+      margin-top: 0;
+      color: #555;
+    }
+    .dark-mode .cell h3 {
+      color: #ddd;
+    }
+    .cell input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      transition: background-color 0.3s, border-color 0.3s, color 0.3s;
+    }
+    .dark-mode .cell input {
+      background-color: #555;
+      border-color: #666;
+      color: #fff;
+    }
+    .cell button {
+      width: 100%;
+      padding: 10px;
+      background-color: #ff4d4d;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+    }
+    .cell button:hover {
+      background-color: #cc0000;
+    }
+    .add-button {
+      padding: 10px 20px;
+      background-color: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background-color 0.3s;
+    }
+    .add-button:hover {
+      background-color: #45a049;
+    }
+    .toggle {
+      display: flex;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+    .toggle label {
+      margin-right: 10px;
+    }
+    .send-all-button {
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      transition: background-color 0.3s;
+    }
+    .send-all-button:hover {
+      background-color: #0056b3;
+    }
+    .circular-slider {
+      width: 150px;
+      height: 150px;
+      position: relative;
+      margin: 20px auto;
+    }
+    .circular-slider input[type="range"] {
+      width: 100%;
+      height: 100%;
+      transform: rotate(-180deg); /* Rotate 90 degrees counter-clockwise */
+      position: absolute;
+      top: 0;
+      left: 0;
+      appearance: none;
+      background: none;
+    }
+    .circular-slider input[type="range"]::-webkit-slider-runnable-track {
+      width: 100%;
+      height: 100%;
+      background: conic-gradient(from 0deg, #007bff 0%, #007bff var(--value), #ddd var(--value), #ddd 100%);
+      border-radius: 50%;
+    }
+    .circular-slider input[type="range"]::-webkit-slider-thumb {
+      appearance: none;
+      width: 20px;
+      height: 20px;
+      background: #007bff;
+      border-radius: 50%;
+      transform: rotate(90deg); /* Adjust thumb rotation */
+    }
+    .dark-mode .circular-slider input[type="range"]::-webkit-slider-runnable-track {
+      background: conic-gradient(from 0deg, #007bff 0%, #007bff var(--value), #666 var(--value), #666 100%);
+    }
+  </style>
+</head>
+<body>
+  <h1>Servo Control Panel</h1>
+  <div class="toggle">
+    <label for="real-time-toggle">Real-Time Updates:</label>
+    <input type="checkbox" id="real-time-toggle" checked>
+  </div>
+  <div class="toggle">
+    <label for="dark-mode-toggle">Dark Mode:</label>
+    <input type="checkbox" id="dark-mode-toggle">
+  </div>
+  <button class="add-button" onclick="addCell()">Add Servo</button>
+  <button class="send-all-button" onclick="sendAll()">Send All</button>
+  <button class="add-button" onclick="saveSettings()">Save Settings</button>
+  <div class="grid" id="grid"></div>
+
+  <script>
+    // Counter to keep track of servo cells
+    let cellCount = 0;
+
+    // Function to add a new servo cell
+    function addCell() {
+      const grid = document.getElementById('grid');
+      const cell = document.createElement('div');
+      cell.className = 'cell';
+      cell.innerHTML = `
+        <h3>Servo ${++cellCount}</h3>
+        <input type="text" placeholder="Servo ID" id="servo-id-${cellCount}">
+        <input type="text" placeholder="IP Address" id="ip-address-${cellCount}">
+        <div class="circular-slider">
+          <input type="range" min="0" max="360" value="180" class="rotary-control" id="rotary-${cellCount}">
+        </div>
+        <div>
+          <label for="speed-${cellCount}">Speed:</label>
+          <input type="range" min="0" max="255" value="128" class="slider" id="speed-${cellCount}">
+        </div>
+        <button onclick="sendServo(${cellCount})">Send</button>
+        <button onclick="removeCell(this)">Remove</button>
+      `;
+      grid.appendChild(cell);
+
+      // Add event listeners for rotary and speed controls
+      const rotary = document.getElementById(`rotary-${cellCount}`);
+      const speed = document.getElementById(`speed-${cellCount}`);
+      rotary.addEventListener('input', () => {
+        updateCircularSlider(rotary);
+        if (document.getElementById('real-time-toggle').checked) {
+          updateServo(cellCount);
+        }
+      });
+      speed.addEventListener('input', () => {
+        if (document.getElementById('real-time-toggle').checked) {
+          updateServo(cellCount);
+        }
+      });
+
+      // Initialize circular slider
+      updateCircularSlider(rotary);
+    }
+
+    // Function to update the circular slider's appearance
+    function updateCircularSlider(slider) {
+      const value = ((slider.value - slider.min) / (slider.max - slider.min)) * 100;
+      slider.style.setProperty('--value', `${value}%`);
+    }
+
+    // Function to remove a servo cell
+    function removeCell(button) {
+      const cell = button.parentElement;
+      cell.remove();
+      cellCount--;
+      saveSettings();
+    }
+
+    // Function to update servo position and speed
+    function updateServo(id) {
+      const servoID = document.getElementById(`servo-id-${id}`).value;
+      const ipAddress = document.getElementById(`ip-address-${id}`).value;
+      const position = document.getElementById(`rotary-${id}`).value;
+      const speed = document.getElementById(`speed-${id}`).value;
+
+      if (!servoID || !ipAddress) {
+        alert('Please enter Servo ID and IP Address.');
+        return;
+      }
+
+      // Send HTTP request to the servo
+      const url = `http://${ipAddress}/setPosition?id=${servoID}&pos=${position}&speed=${speed}`;
+      fetch(url)
+        .then(response => response.text())
+        .then(data => console.log(data))
+        .catch(error => console.error('Error:', error));
+    }
+
+    // Function to send position and speed to a specific servo
+    function sendServo(id) {
+      updateServo(id);
+    }
+
+    // Function to send positions and speeds to all servos
+    function sendAll() {
+      for (let i = 1; i <= cellCount; i++) {
+        if (document.getElementById(`servo-id-${i}`) && document.getElementById(`ip-address-${i}`)) {
+          updateServo(i);
+        }
+      }
+    }
+
+    // Function to save all page settings
+    function saveSettings() {
+      const settings = {
+        darkMode: document.getElementById('dark-mode-toggle').checked,
+        realTime: document.getElementById('real-time-toggle').checked,
+        servos: [],
+      };
+      for (let i = 1; i <= cellCount; i++) {
+        const servoID = document.getElementById(`servo-id-${i}`)?.value;
+        const ipAddress = document.getElementById(`ip-address-${i}`)?.value;
+        const position = document.getElementById(`rotary-${i}`)?.value;
+        const speed = document.getElementById(`speed-${i}`)?.value;
+        if (servoID && ipAddress) {
+          settings.servos.push({ servoID, ipAddress, position, speed });
+        }
+      }
+      localStorage.setItem('servoSettings', JSON.stringify(settings));
+    }
+
+    // Function to load saved settings
+    function loadSettings() {
+      const settings = JSON.parse(localStorage.getItem('servoSettings'));
+      if (settings) {
+        // Set dark mode
+        document.getElementById('dark-mode-toggle').checked = settings.darkMode;
+        toggleDarkMode();
+
+        // Set real-time updates
+        document.getElementById('real-time-toggle').checked = settings.realTime;
+
+        // Add servos and set their values
+        settings.servos.forEach(servo => {
+          addCell();
+          document.getElementById(`servo-id-${cellCount}`).value = servo.servoID;
+          document.getElementById(`ip-address-${cellCount}`).value = servo.ipAddress;
+          document.getElementById(`rotary-${cellCount}`).value = servo.position;
+          document.getElementById(`speed-${cellCount}`).value = servo.speed;
+          updateCircularSlider(document.getElementById(`rotary-${cellCount}`));
+        });
+      }
+    }
+
+    // Function to toggle dark mode
+    function toggleDarkMode() {
+      document.body.classList.toggle('dark-mode', document.getElementById('dark-mode-toggle').checked);
+    }
+
+    // Event listener for dark mode toggle
+    document.getElementById('dark-mode-toggle').addEventListener('change', toggleDarkMode);
+
+    // Load settings when the page is loaded
+    window.addEventListener('load', loadSettings);
+  </script>
+</body>
+</html>
