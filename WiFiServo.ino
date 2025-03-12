@@ -110,6 +110,13 @@ void loop() {
           Serial.print("Received command to move to position: ");
           Serial.println(targetPosition);
 
+          // Send response to the client
+          client.println("HTTP/1.1 200 OK");
+          client.println("Content-Type: text/plain");
+          client.println();
+          client.print("Received command to move to position: ");
+          client.println(targetPosition);
+
           // Play a 3-note jingle
           playJingle();
         }
@@ -121,19 +128,17 @@ void loop() {
         servoID = request.substring(idStart + 3);
         Serial.print("Servo ID set to: ");
         Serial.println(servoID);
+
+        // Send response to the client
+        client.println("HTTP/1.1 200 OK");
+        client.println("Content-Type: text/plain");
+        client.println();
+        client.print("Servo ID set to: ");
+        client.println(servoID);
       }
     }
 
-    // Send the current position and servo ID as a response
-    client.println("HTTP/1.1 200 OK");
-    client.println("Content-Type: text/html");
-    client.println("");
-    client.print("Servo ID: ");
-    client.println(servoID);
-    client.print("Current Position: ");
-    client.println(currentPosition);
-    client.print("Motor Speed: ");
-    client.println(motorSpeed);
+    // Close the connection
     client.stop();
     Serial.println("Client disconnected");
   }
