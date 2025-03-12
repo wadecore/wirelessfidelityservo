@@ -36,8 +36,8 @@ float derivative = 0;
 float output = 0;
 
 // Motor control variables
-int targetPosition = 0;
-int currentPosition = 0;
+int targetPosition = 0; // Target position (0-360 degrees)
+int currentPosition = 0; // Current position (0-360 degrees)
 int motorSpeed = 128; // Default speed (0-255)
 
 // Sensor calibration
