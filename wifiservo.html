@@ -254,7 +254,7 @@
           console.log(data);
           // Update feedback box with the response
           const feedbackBox = document.getElementById(`feedback-${id}`);
-          feedbackBox.value += `Command sent: Move to ${position} at speed ${speed}\n`;
+          feedbackBox.value += `${data}\n`;
           feedbackBox.scrollTop = feedbackBox.scrollHeight; // Auto-scroll to the bottom
         })
         .catch(error => {
