@@ -105,10 +105,10 @@ void loop() {
         if (requestedID == servoID) { // Check if the ID matches
           targetPosition = request.substring(posStart + 4, speedStart - 1).toInt();
           motorSpeed = request.substring(speedStart + 6).toInt();
-          Serial.print("Target position set to: ");
+
+          // Report receiving the command
+          Serial.print("Received command to move to position: ");
           Serial.println(targetPosition);
-          Serial.print("Motor speed set to: ");
-          Serial.println(motorSpeed);
 
           // Play a 3-note jingle
           playJingle();
@@ -159,18 +159,33 @@ void loop() {
     digitalWrite(motorPin2, LOW);
     analogWrite(enablePin, abs(constrainedOutput));
     setRGB(255, 0, 0); // Red
+
+    // Report moving to the target position
+    Serial.print("Moving to position: ");
+    Serial.println(targetPosition);
   } else if (constrainedOutput < 0) {
     // Rotate counter-clockwise
     digitalWrite(motorPin1, LOW);
     digitalWrite(motorPin2, HIGH);
     analogWrite(enablePin, abs(constrainedOutput));
     setRGB(0, 0, 255); // Blue
+
+    // Report moving to the target position
+    Serial.print("Moving to position: ");
+    Serial.println(targetPosition);
   } else {
     // Stop the motor
     digitalWrite(motorPin1, LOW);
     digitalWrite(motorPin2, LOW);
     analogWrite(enablePin, 0);
     setRGB(0, 255, 0); // Green
+
+    // Report arrival at the target position
+    Serial.print("Arrived at position: ");
+    Serial.print(currentPosition);
+    Serial.print(" (Hall effect sensor value: ");
+    Serial.print(sensorValue);
+    Serial.println(")");
   }
 
   // Small delay to avoid excessive updates
